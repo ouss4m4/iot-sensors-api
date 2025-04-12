@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { Report } from "../models/report";
 
 export const createReports = async (req: Request, res: Response): Promise<void> => {
-  const { stat_date, stat_min, sensor_id, equipment_id, min, max, avg, sensor_type } = req.body;
+  const { stat_date, stat_hour, sensor_id, equipment_id, min, max, avg, sensor_type } = req.body;
 
-  if (!stat_date || !stat_min || !sensor_id || !equipment_id || !min || !max || !avg || !sensor_type) {
+  if (!stat_date || !stat_hour || !sensor_id || !equipment_id || !min || !max || !avg || !sensor_type) {
     res.status(400).json({ error: "missing params" });
     return;
   }

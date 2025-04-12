@@ -1,6 +1,6 @@
 // src/routes/ingestRoutes.ts
 import { Router } from "express";
-import { sendSensorDataToKafka } from "../services/kafka/kafkaService";
+import { sendSensorDataToKafka } from "../kafka/kafkaService";
 
 const ingestRouter = Router();
 
@@ -13,7 +13,7 @@ ingestRouter.get("/", async (req, res) => {
     }
 
     const timestamp = new Date().toUTCString();
-    await sendSensorDataToKafka({ equipment_id, sensor_id, value, timestamp });
+    await sendSensorDataToKafka({ equipment_id, sensor_id, sensor_type: Number(sensor_type), value, timestamp });
     res.status(202).json({ message: "Data queued successfully" });
   } catch (err) {
     console.error(err);

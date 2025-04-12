@@ -1,15 +1,25 @@
+import { config } from "dotenv";
 import express, { Response, Request } from "express";
 import mongoose from "mongoose";
 import { equipmentRouter } from "./routes/equipment.routes";
 import { sensorRouter } from "./routes/sensor.routes";
 import { reportRouter } from "./routes/report.routes";
-import { initCassandraSchema, client } from "./config/cassandra";
+import { initCassandraSchema, client } from "./cassandra/cassandra";
 import { ingestRouter } from "./routes/ingest.routes";
 
+config();
 const app = express();
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/sensors");
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/sensors";
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
 app.use("/api/equipment", equipmentRouter);
 app.use("/api/sensors", sensorRouter);
@@ -20,12 +30,13 @@ app.use("/api/requests", async (_: Request, res: Response) => {
   res.json(data.rows);
 });
 
-// src/app.ts
-
-// Start Kafka consumer (side-effect)
-
-app.listen(3000, async () => {
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, async () => {
   await initCassandraSchema();
-  // inside your main bootstrap:
-  console.log("Server running on http://localhost:3000");
+  console.log(`✨ Server running on http://localhost:${PORT}`);
 });
+
+// Graceful shutdown handlers
+// import { gracefulShutdown } from "./utils/shutdown";
+
+// process.on("SIGTERM", () => gracefulShutdown({ server }));

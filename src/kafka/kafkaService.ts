@@ -1,9 +1,10 @@
-// src/services/kafkaService.ts
+import { config } from "dotenv";
 import { Kafka } from "kafkajs";
+config();
 
 export const kafka = new Kafka({
-  clientId: "sensor-service",
-  brokers: ["localhost:9093"],
+  clientId: process.env.KAFKA_CLIENT_ID || "sensor-service",
+  brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
 });
 
 export const producer = kafka.producer();

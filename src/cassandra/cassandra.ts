@@ -1,8 +1,8 @@
 import { Client } from "cassandra-driver";
 
 const client = new Client({
-  contactPoints: ["localhost"],
-  localDataCenter: "datacenter1",
+  contactPoints: (process.env.CASSANDRA_CONTACT_POINTS || "localhost").split(","),
+  localDataCenter: process.env.CASSANDRA_DATACENTER || "datacenter1",
   keyspace: "sensor_data",
 });
 
