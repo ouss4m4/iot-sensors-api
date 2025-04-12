@@ -1,15 +1,51 @@
 # High Traffic Ingestion API
 
-sample API for a system where sensors are put on equipments to transmit data to API.
+![Architecture](./diagram.png)
 
-Complexity with this stype of setup is the huge traffic that sensors send
-and with every new equipement (clients can have a fleet) hundreds of sensors are added
+This is a backend system designed to handle **high-throughput sensor data** sent from equipment deployed across various client sites. Each equipment can host **hundreds of sensors**, transmitting frequent metrics, which creates substantial ingestion traffic.
 
-## Solution
+---
 
-- Cassandra to store the raw request (for reconsiliation, archive)
-- MongoDb to store the Sensor and the Equipment Models. with the Report
-- Kafka to ingest traffic load.
-- group of consumers for EachMessage to direct inserts to Cassanda
-- group of consumers to aggregate a group of request into a report. to MONGO
-- ETL to datawarehouse for OLAP
+## 💡 Key Design Choices
+
+### 1. **Cassandra for Raw Writes**
+
+- All sensor data is saved _as-is_ into Cassandra for:
+  - Full historical traceability
+  - Future reprocessing or reconciliation
+
+### 2. **Kafka for Load Buffering**
+
+- API servers publish sensor readings to Kafka immediately after lightweight validation.
+- Kafka decouples ingestion from processing.
+
+### 3. **MongoDB for Aggregated Reports**
+
+- Aggregated sensor readings (e.g., every minute) are saved into MongoDB Reports.
+- This is the primary source for dashboards and near-real-time visualizations.
+
+### 4. **ETL for OLAP**
+
+- A separate ETL job fetches data from Cassandra and moves it to ClickHouse for analytical workloads and dashboards.
+
+---
+
+## 🧪 Tech Stack
+
+| Purpose            | Tool              |
+| ------------------ | ----------------- |
+| API / Validation   | Node.js + Express |
+| Raw Storage        | Cassandra         |
+| Aggregated Reports | MongoDB           |
+| Ingestion Queue    | Kafka             |
+| Heavy Analytics    | ClickHouse        |
+| Process Manager    | PM2               |
+| Deployment         | Docker + Compose  |
+
+---
+
+| Process Name | Script                              | Instances |
+| ------------ | ----------------------------------- | --------- |
+| API          | build/app.js                        | 2         |
+| kafka-raw    | build/consumers/kafkaToCassandra.js | 3         |
+| kafka-report | build/consumers/kafkaToMongo.       | 1         |

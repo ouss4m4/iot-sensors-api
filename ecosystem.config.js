@@ -1,11 +1,12 @@
 module.exports = {
   apps: [
     {
-      name: "iot-api",
+      name: "api",
       script: "build/app.js",
       interpreter: "node",
-      exec_mode: "fork",
+      exec_mode: "cluster",
       watch: false,
+      instances: 2,
     },
     {
       name: "mongo-consumer",
@@ -19,7 +20,7 @@ module.exports = {
       name: "cassandra-consumer",
       script: "build/consumers/kafkaToCassandra.js",
       interpreter: "node",
-      exec_mode: "cluster",
+      exec_mode: "fork",
       instances: 3,
       watch: false,
     },
