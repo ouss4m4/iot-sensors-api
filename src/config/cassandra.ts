@@ -1,14 +1,27 @@
-// src/config/cassandra.ts (or src/cassandra/client.ts)
 import { Client } from "cassandra-driver";
 
 const client = new Client({
-  contactPoints: ["cassandra"],
-  localDataCenter: "DC1",
+  contactPoints: ["localhost"],
+  localDataCenter: "datacenter1",
   keyspace: "sensor_data",
 });
 
-export async function initCassandraSchema() {
-  await client.connect();
+async function connectWithRetry(retries = 5, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await client.connect();
+      console.log("✅ Connected to Cassandra");
+      return;
+    } catch (err: any) {
+      console.error(`❌ Cassandra connection failed (attempt ${i + 1}/${retries}): ${err?.message ?? ""}`);
+      if (i === retries - 1) throw err;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+async function initCassandraSchema() {
+  await connectWithRetry();
 
   await client.execute(`
     CREATE KEYSPACE IF NOT EXISTS sensor_data
@@ -17,8 +30,6 @@ export async function initCassandraSchema() {
       'replication_factor': 1
     };
   `);
-
-  await client.execute(`USE sensor_data`);
 
   await client.execute(`
     CREATE TABLE IF NOT EXISTS sensor_readings (
@@ -29,8 +40,11 @@ export async function initCassandraSchema() {
       PRIMARY KEY ((equipment_id), sensor_id, timestamp)
     ) WITH CLUSTERING ORDER BY (sensor_id ASC, timestamp DESC);
   `);
+  const result = await client.execute(`
+    SELECT * FROM sensor_readings LIMIT 10;`);
 
   console.log("✅ Cassandra schema initialized.");
+  console.log(result);
 }
 
-export { client };
+export { client, initCassandraSchema };
