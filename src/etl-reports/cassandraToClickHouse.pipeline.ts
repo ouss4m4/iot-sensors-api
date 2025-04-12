@@ -27,13 +27,9 @@ function formatDate(date: Date): string {
   return date.toISOString().split("T")[0]; // YYYY-MM-DD
 }
 
-function pad(num: number): string {
-  return num.toString().padStart(2, "0");
-}
-
 async function runETL() {
   const { start, end } = getTimeRange();
-  console.log(`running from ${start} to ${end}`);
+
   const query = `
     SELECT sensor_id, equipment_id, value, timestamp
     FROM sensor_readings
@@ -46,7 +42,6 @@ async function runETL() {
   });
 
   const readings = result.rows;
-  console.log(`found ${readings.length} in cassandra`);
   const grouped = new Map<
     string,
     {
@@ -69,12 +64,9 @@ async function runETL() {
     grouped.set(key, group);
   }
 
-  const stat_hour = pad(start.getHours());
+  const stat_hour = start.getHours().toString().padStart(2, "0") + ":00";
   const stat_date = formatDate(start);
-  const created_at = new Date();
-  console.log(stat_date);
-  console.log(stat_hour);
-  // return console.log(grouped);
+
   const rows = Array.from(grouped.values()).map((group) => {
     const min = Math.min(...group.values);
     const max = Math.max(...group.values);
