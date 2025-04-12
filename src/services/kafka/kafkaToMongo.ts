@@ -1,12 +1,13 @@
 import { Report } from "../../models/report";
 import { kafka } from "./kafkaService";
+import mongoose from "mongoose";
 
 async function insertAggregatedReportsToMongo() {
   console.log("Kafka Mongo consumer started...");
-  const mongoConsumer = kafka.consumer({ groupId: "iot-sensors-group" });
+  const mongoConsumer = kafka.consumer({ groupId: "iot-sensors-group", heartbeatInterval: 0 });
   await mongoConsumer.connect();
   await mongoConsumer.subscribe({ topic: "sensor-data", fromBeginning: false });
-
+  mongoose.connect("mongodb://localhost:27017/sensors");
   const buffer: any[] = [];
 
   // Run every minute
@@ -29,7 +30,7 @@ async function insertAggregatedReportsToMongo() {
     > = {};
 
     for (const item of buffer) {
-      const { sensor_id, equipment_id, sensor_type, value } = item;
+      const { sensor_id, equipment_id, sensor_type = 1, value } = item;
 
       const key = `${equipment_id}:${sensor_id}`;
       if (!grouped[key]) {
@@ -69,7 +70,7 @@ async function insertAggregatedReportsToMongo() {
     }
 
     buffer.length = 0;
-  }, 60_000); // once per minute
+  }, 60_000); // reports per minute for dashboard
 
   await mongoConsumer.run({
     eachMessage: async ({ message }) => {
@@ -77,6 +78,7 @@ async function insertAggregatedReportsToMongo() {
         if (!message.value) return;
         const data = JSON.parse(message.value.toString());
         buffer.push(data);
+        console.log(`event received. adding to batch. size now ${buffer.length}`);
       } catch (err) {
         console.error("Error in mongo consumer. Skipping message.", err);
       }
