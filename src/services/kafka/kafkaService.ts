@@ -17,7 +17,13 @@ export const producer = kafka.producer();
   await producer.connect();
 })();
 
-export async function sendSensorDataToKafka(sensorData: { equipment_id: string; sensor_type: string; value: string; timestamp: string }) {
+export async function sendSensorDataToKafka(sensorData: {
+  equipment_id: string;
+  sensor_id: string;
+  sensor_type: number;
+  value: string;
+  timestamp: string;
+}) {
   await producer.send({
     topic: "sensor-data",
     messages: [{ value: JSON.stringify(sensorData) }],

@@ -13,7 +13,7 @@ ingestRouter.get("/", async (req, res) => {
     }
 
     const timestamp = new Date().toUTCString();
-    await sendSensorDataToKafka({ equipment_id, sensor_type, value, timestamp });
+    await sendSensorDataToKafka({ equipment_id, sensor_id, value, timestamp });
     res.status(202).json({ message: "Data queued successfully" });
   } catch (err) {
     console.error(err);

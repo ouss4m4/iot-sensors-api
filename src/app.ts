@@ -1,11 +1,9 @@
-import express from "express";
+import express, { Response, Request } from "express";
 import mongoose from "mongoose";
 import { equipmentRouter } from "./routes/equipment.routes";
 import { sensorRouter } from "./routes/sensor.routes";
 import { reportRouter } from "./routes/report.routes";
-import { initCassandraSchema } from "./config/cassandra";
-import { insertAggregatedReportsToMongo } from "./services/kafka/kafkaToMongo";
-import { insertSensorDataToCassandra } from "./services/kafka/kafkaToCassandra";
+import { initCassandraSchema, client } from "./config/cassandra";
 import { ingestRouter } from "./routes/ingest.routes";
 
 const app = express();
@@ -17,12 +15,14 @@ app.use("/api/equipment", equipmentRouter);
 app.use("/api/sensors", sensorRouter);
 app.use("/api/reports", reportRouter);
 app.use("/api/metrics", ingestRouter);
+app.use("/api/requests", async (_: Request, res: Response) => {
+  const data = await client.execute(`SELECT * FROM sensor_readings`);
+  res.json(data.rows);
+});
 
 // src/app.ts
 
 // Start Kafka consumer (side-effect)
-insertAggregatedReportsToMongo().catch(console.error);
-insertSensorDataToCassandra().catch(console.error);
 
 app.listen(3000, async () => {
   await initCassandraSchema();

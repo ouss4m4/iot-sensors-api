@@ -10,7 +10,6 @@ async function connectWithRetry(retries = 5, delay = 3000) {
   for (let i = 0; i < retries; i++) {
     try {
       await client.connect();
-      console.log("✅ Connected to Cassandra");
       return;
     } catch (err: any) {
       console.error(`❌ Cassandra connection failed (attempt ${i + 1}/${retries}): ${err?.message ?? ""}`);
@@ -36,15 +35,12 @@ async function initCassandraSchema() {
       equipment_id TEXT,
       sensor_id TEXT,
       timestamp TIMESTAMP,
-      value DOUBLE,
+      value TEXT,
       PRIMARY KEY ((equipment_id), sensor_id, timestamp)
     ) WITH CLUSTERING ORDER BY (sensor_id ASC, timestamp DESC);
   `);
-  const result = await client.execute(`
-    SELECT * FROM sensor_readings LIMIT 10;`);
 
   console.log("✅ Cassandra schema initialized.");
-  console.log(result);
 }
 
 export { client, initCassandraSchema };
