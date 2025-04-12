@@ -16,7 +16,7 @@ services:
       - 9042:9042
     environment:
       - CASSANDRA_CLUSTER_NAME=Cluster
-      - CASSANDRA_DC=DC1
+      - CASSANDRA_DC=datacenter1
       - CASSANDRA_RACK=Rack1
     volumes:
       - cassandra_data:/var/lib/cassandra
@@ -49,6 +49,21 @@ services:
     networks:
       - app-network
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - 8123:8123
+      - 9000:9000
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=secret
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
@@ -56,3 +71,4 @@ networks:
 volumes:
   mongodb_data:
   cassandra_data:
+  clickhouse_data:

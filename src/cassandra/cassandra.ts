@@ -1,8 +1,8 @@
 import { Client } from "cassandra-driver";
 
 const client = new Client({
-  contactPoints: (process.env.CASSANDRA_CONTACT_POINTS || "localhost").split(","),
-  localDataCenter: process.env.CASSANDRA_DATACENTER || "datacenter1",
+  contactPoints: ["localhost"],
+  localDataCenter: "datacenter1",
   keyspace: "sensor_data",
 });
 
@@ -30,8 +30,11 @@ async function initCassandraSchema() {
     };
   `);
 
+  // Set the keyspace explicitly in the session
+  await client.execute(`USE sensor_data`);
+
   await client.execute(`
-    CREATE TABLE IF NOT EXISTS sensor_readings (
+    CREATE TABLE IF NOT EXISTS sensor_data.sensor_readings (
       equipment_id TEXT,
       sensor_id TEXT,
       timestamp TIMESTAMP,
