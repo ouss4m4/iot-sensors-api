@@ -4,6 +4,9 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --inspect --transpile-only ./src/app.ts",
+    "build": "tsc",
+    "pm2": "pm2 start ecosystem.config.js",
+    "prod": "npm run build && npm run pm2",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
