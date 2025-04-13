@@ -1,3 +1,5 @@
+const { watch } = require("fs");
+
 module.exports = {
   apps: [
     {
@@ -23,6 +25,15 @@ module.exports = {
       exec_mode: "fork",
       instances: 3,
       watch: false,
+    },
+    {
+      name: "clickhouse-etl",
+      script: "build/etl-reports/cassandraToClickHouse.pipeline.js",
+      interpreter: "node",
+      instances: 1,
+      watch: false,
+      exec_mode: "fork",
+      cron_restart: "*/5 * * * *", // every 5 minutes
     },
   ],
 };

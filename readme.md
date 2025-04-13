@@ -52,10 +52,13 @@ This backend system is designed to handle **high-throughput sensor data** sent f
 
 ## ⚙️ Running Processes
 
-| Process Name | Script                              | Instances |
-| ------------ | ----------------------------------- | --------- |
-| API          | build/app.js                        | 2         |
-| kafka-raw    | build/consumers/kafkaToCassandra.js | 3         |
-| kafka-report | build/consumers/kafkaToMongo.js     | 1         |
+| Process Name       | Script                                              | Instances |
+| ------------------ | --------------------------------------------------- | --------- |
+| API                | build/app.js                                        | 2         |
+| mongo-consumer     | build/consumers/kafkaToCassandra.js                 | 3         |
+| cassandra-consumer | build/consumers/kafkaToMongo.js                     | 1         |
+| clickhoust-etl     | build/etl-reports/cassandraToClickHouse.pipeline.js | 1         |
 
 ---
+
+![Process running](./pm2-status.png)
